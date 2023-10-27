@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def generate_trajectories_from_yolo(file_path):
+def generate_trajectories(file_path):
     with open(file_path, 'r') as f:
         lines = f.read().split('\n')
         values = []
