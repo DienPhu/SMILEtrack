@@ -6,20 +6,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def generate_trajectories(file_path,groundTrues=False):
-    with open(file_path, 'r') as f:
-        lines = f.read().split('\n')
-        values = []
-        for line in lines:
-            if line.strip():  # Check if the line is not empty
-                object_class, x_center, y_center, width, height = map(float, line.split())
-                # Convert YOLO format to x1, y1, x2, y2
-                x1 = int((x_center - width / 2) * image_width)  # Assuming image_width is known
-                y1 = int((y_center - height / 2) * image_height)  # Assuming image_height is known
-                x2 = int((x_center + width / 2) * image_width)
-                y2 = int((y_center + height / 2) * image_height)
-                values.append([object_class, x1, y1, x2, y2])
-    return np.array(values)
+def generate_trajectories_from_yolo(parent_dir):
+    trajectories = []
+    annotations_file_path = os.path.join(parent_dir, 'Annotations')
+    if os.path.exists(annotations_file_path):
+        with open(annotations_file_path, 'r') as annotations_file:
+            txt_files = annotations_file.read().splitlines()
+
+        for txt_file in txt_files:
+            txt_file_path = os.path.join(parent_dir, txt_file)
+            if os.path.exists(txt_file_path):
+                with open(txt_file_path, 'r') as f:
+                    lines = f.read().split('\n')
+                    for line in lines:
+                        if line.strip():  # Check if the line is not empty
+                            object_class, x_center, y_center, width, height = map(float, line.split())
+                            # Convert YOLO format to x1, y1, x2, y2
+                            x1 = int((x_center - width / 2) * image_width)  # Assuming image_width is known
+                            y1 = int((y_center - height / 2) * image_height)  # Assuming image_height is known
+                            x2 = int((x_center + width / 2) * image_width)
+                            y2 = int((y_center + height / 2) * image_height)
+                            trajectories.append([object_class, x1, y1, x2, y2])
+    return np.array(trajectories)
 
 
 def make_parser():
@@ -60,8 +68,9 @@ def main(args):
         print(seq)
         print(id_offset)
 
-        ground_truth_path = os.path.join(data_path, seq, 'gt/gt.txt')
-        gt = generate_trajectories(ground_truth_path, groundTrues=True)  # f, id, x_tl, y_tl, x_br, y_br, ...
+        parent_dir = '/path/to/your/parent/directory'  # Specify the directory containing train, test, and annotation files
+
+        gt = generate_trajectories_from_yolo(parent_dir)
 
         images_path = os.path.join(data_path, seq, 'img1')
         img_files = os.listdir(images_path)
